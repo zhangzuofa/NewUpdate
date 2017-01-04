@@ -85,6 +85,16 @@ public class DownloadTAsk extends AsyncTask<String,Integer,Integer> {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try{
+                if (is !=null) {
+                    is.close();
+                }
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
         }
         return null;
     }
