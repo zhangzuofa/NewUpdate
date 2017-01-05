@@ -19,9 +19,9 @@ import okhttp3.Response;
 public class DownloadTAsk extends AsyncTask<String,Integer,Integer> {
 
     public static final int TYPE_SUCESS = 0;
-    public static final int TYPE_FAILED = 0;
-    public static final int TYPE_PAUSED = 0;
-    public static final int TYPE_CANCELD = 0;
+    public static final int TYPE_FAILED = 1;
+    public static final int TYPE_PAUSED = 2;
+    public static final int TYPE_CANCELD = 3;
     private DownloadListener listener;
 
     private boolean isCanceled = false;
@@ -91,14 +91,57 @@ public class DownloadTAsk extends AsyncTask<String,Integer,Integer> {
                     is.close();
                 }
 
+                if (savedFile == null) {
+                    savedFile.close();
+                }
+                if (isCanceled && file== null) {
+                    file.delete();
+                }
             }catch (Exception e){
                 e.printStackTrace();
             }
 
         }
-        return null;
+        return TYPE_FAILED;
     }
 
+    @Override
+    protected void onProgressUpdate(Integer... values) {
+       int progress = values[0];
+        if (progress > lastProgress){
+            listener.onProgress(progress);
+            lastProgress = progress;
+
+        }
+    }
+
+    @Override
+    protected void onPostExecute(Integer integer) {
+        switch (integer){
+            case TYPE_SUCESS:
+                listener.onSucess();
+                break;
+            case TYPE_FAILED:
+                listener.onFailed();
+                break;
+            case TYPE_PAUSED:
+                listener.onPaused();
+                break;
+            case TYPE_CANCELD:
+                listener.onCanceled();
+                break;
+            default:
+                break;
+        }
+
+    }
+    public void pauseDownload(){
+        isPaused = true;
+    }
+
+    public void cancelDownload(){
+        isCanceled = true;
+    }
     private long getContentLength(String downloadUrl) throws IOException {
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder().url(downloadUrl)
